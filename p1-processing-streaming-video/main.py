@@ -4,21 +4,28 @@ import numpy as np
 def nothing(x):
     pass
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0) #Captura el video
 
-cv2.namedWindow("Controls")
-cv2.createTrackbar("Angle",  "Controls", 0,     360,   nothing)
-cv2.createTrackbar("TX",     "Controls", w,     2 * w, nothing)
-cv2.createTrackbar("TY",     "Controls", h,     2 * h, nothing)
-cv2.createTrackbar("Scale",  "Controls", 100,   300,   nothing)
+ret, frame = cap.read()
+if not ret:
+    raise RuntimeError("No se pudo leer la camara")
+h, w = frame.shape[:2]
+
+# Create trackbar to control the image trnasformations
+cv2.namedWindow("Controls")# Name window
+cv2.createTrackbar("Angle","Controls", 0,     360,   nothing)
+cv2.createTrackbar("TX", "Controls", w,  2 * w, nothing)
+cv2.createTrackbar("TY", "Controls", h,  2 * h, nothing)
+cv2.createTrackbar("Scale", "Controls", 100, 300, nothing)
 
 while True:
     ret, frame = cap.read()
     if not ret:
         break
+    #h, w = frame.shape[:2]
 
     angle = cv2.getTrackbarPos("Angle", "Controls")
-    tx    = cv2.getTrackbarPos("TX", "Controls") - w      # back to -w..+w
+    tx    = cv2.getTrackbarPos("TX", "Controls") - w
     ty    = cv2.getTrackbarPos("TY", "Controls") - h
     scale = max(cv2.getTrackbarPos("Scale", "Controls"), 1) / 100.0
 
