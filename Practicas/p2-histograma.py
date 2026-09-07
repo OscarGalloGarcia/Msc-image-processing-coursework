@@ -9,5 +9,18 @@
 
 import numpy as np
 import cv2 
+from matplotlib import pyplot as plt
 
-I_org = cv2.imread()
+I_org = cv2.imread("data/lena.bmp") #Lee la imagen
+I_org = cv2.cvtColor(I_org, cv2.COLOR_BGR2RGB) # Cambia el formato de canales de color
+
+cv2.imshow("Imagen original", I_org)
+
+#Calcular histograma:
+color = ('r,g,b')
+for i, col in enumerate(color):
+    Hist_org = cv2.calcHist([I_org], [i], None, [256], [0,256])
+    plt.plot(Hist_org, color=col)
+    plt.xlim([0,256])
+plt.draw()
+plt.pause(0.01)
