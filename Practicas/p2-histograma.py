@@ -30,35 +30,44 @@ def plot_hist(Hist, color):
         plt.plot(hist, color=col)
 
 
-def hist_acumulado(hist):
-    hist_acum = np.cumsum(hist)
-    hist_acum = hist_acum / hist_acum[-1]
+def hist_acumulado(Hist):
+    Hist_acum = np.cumsum(Hist)
+    Hist_acum = Hist_acum / Hist_acum[-1]
 
-    return hist_acum
-
-
-def hist_especificado(media, sigma):
-    x = np.arange(256)
-
-    hist = np.exp(
-        -((x - media) ** 2) / (2 * sigma ** 2)
-    )
-
-    return hist
+    return Hist_acum
 
 
-def especificacion(canal, Hist_ref):
+# Histograma especificado para canal rojo
+def hist_R(x):
+    return np.abs(x - 128)
 
-    # Histograma del canal original
+
+# Histograma especificado para canal verde
+def hist_G(x):
+    return 255 - x
+
+
+# Histograma especificado para canal azul
+def hist_B(x):
+    return np.ones(256) + 100
+
+
+def especificacion(I_in, Hist_ref):
+
+    # Histograma original del canal
     Hist_org = cv2.calcHist(
-        [canal], [0], None, [256], [0,256]
+        [I_in],
+        [0],
+        None,
+        [256],
+        [0,256]
     )
 
     # Histogramas acumulados
     Hist_org_acum = hist_acumulado(Hist_org)
     Hist_ref_acum = hist_acumulado(Hist_ref)
 
-    # Tabla de transformacion
+    # Transformacion
     T = np.zeros(256, dtype=np.uint8)
 
     for i in range(256):
@@ -68,16 +77,15 @@ def especificacion(canal, Hist_ref):
 
         T[i] = np.argmin(diferencia)
 
-    # Aplicar transformacion
-    canal_out = T[canal]
+    # Aplicar transformacion al canal
+    I_out = T[I_in]
 
-    return canal_out
+    return I_out
 
 
 if __name__ == "__main__":
 
-    I_org = cv2.imread("data/lena.bmp") #Lee la imagen
-    #I_org = cv2.cvtColor(I_org, cv2.COLOR_BGR2RGB) # Cambia el formato de canales de color
+    I_org = cv2.imread("data/lena.bmp") # Lee la imagen
 
 
     #1 Imagen original:
@@ -94,13 +102,14 @@ if __name__ == "__main__":
     )
 
     plt.figure()
+
     plot_hist(
         Hist=Hist_org,
         color=color
     )
 
     plt.title("Histograma original")
-    plt.xlabel("Intensidad")
+    plt.xlabel("Nivel de intensidad")
     plt.ylabel("Numero de pixeles")
     plt.xlim([0,256])
 
@@ -108,58 +117,45 @@ if __name__ == "__main__":
 
 
     #3 Histogramas por especificacion:
-    Hist_B = hist_especificado(
-        media=80,
-        sigma=40
-    )
+    x = np.arange(256)
 
-    Hist_G = hist_especificado(
-        media=130,
-        sigma=40
-    )
-
-    Hist_R = hist_especificado(
-        media=180,
-        sigma=40
-    )
-
-    Hist_ref = [
-        Hist_B,
-        Hist_G,
-        Hist_R
-    ]
+    Hist_R = hist_R(x)
+    Hist_G = hist_G(x)
+    Hist_B = hist_B(x)
 
     plt.figure()
 
-    plot_hist(
-        Hist=Hist_ref,
-        color=color
-    )
+    plt.plot(Hist_R, color='r')
+    plt.plot(Hist_G, color='g')
+    plt.plot(Hist_B, color='b')
 
     plt.title("Histogramas por especificacion")
-    plt.xlabel("Intensidad")
+    plt.xlabel("Nivel de intensidad")
+    plt.ylabel("Valor de la funcion")
+    plt.xlim([0,256])
 
     plt.show()
 
 
-    # Separar canales de la imagen:
+    # Separar los canales de la imagen
+    # OpenCV utiliza orden BGR
     B, G, R = cv2.split(I_org)
 
 
-    # Aplicar especificacion:
-    B_out = especificacion(
-        canal=B,
-        Hist_ref=Hist_B
+    # Especificacion de cada canal
+    R_out = especificacion(
+        I_in=R,
+        Hist_ref=Hist_R
     )
 
     G_out = especificacion(
-        canal=G,
+        I_in=G,
         Hist_ref=Hist_G
     )
 
-    R_out = especificacion(
-        canal=R,
-        Hist_ref=Hist_R
+    B_out = especificacion(
+        I_in=B,
+        Hist_ref=Hist_B
     )
 
 
@@ -170,11 +166,7 @@ if __name__ == "__main__":
         R_out
     ])
 
-    cv2.imshow(
-        "Imagen resultante",
-        I_out
-    )
-
+    cv2.imshow("Imagen resultante", I_out)
     cv2.waitKey(100)
 
 
@@ -191,8 +183,8 @@ if __name__ == "__main__":
         color=color
     )
 
-    plt.title("Histograma resultante")
-    plt.xlabel("Intensidad")
+    plt.title("Histograma de la imagen resultante")
+    plt.xlabel("Nivel de intensidad")
     plt.ylabel("Numero de pixeles")
     plt.xlim([0,256])
 
