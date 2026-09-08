@@ -169,6 +169,8 @@ if __name__ == "__main__":
     cv2.imshow("Imagen resultante", I_out)
     cv2.waitKey(100)
 
+    cv2.imwrite("data/I_out.bmp", I_out)
+
 
     #5 Histograma de la imagen resultante:
     Hist_out = histograma(
@@ -187,6 +189,8 @@ if __name__ == "__main__":
     plt.xlabel("Nivel de intensidad")
     plt.ylabel("Numero de pixeles")
     plt.xlim([0,256])
+
+    plt.savefig("data/histograma_resultante.png")
 
     plt.show()
 
